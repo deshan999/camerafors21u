@@ -146,8 +146,8 @@
         });
 
         captureButton.addEventListener('click', () => {
-            canvas.width = 3840;  // 4K resolution width
-            canvas.height = 2160; // 4K resolution height
+            canvas.width = 2160;  // 4K resolution width
+            canvas.height = 3840; // 4K resolution height
             canvasContext.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
@@ -188,8 +188,8 @@
             navigator.mediaDevices.getUserMedia({
                 video: {
                     deviceId: { exact: deviceId },
-                    width: { ideal: 1920 },   // Full HD width
-                    height: { ideal: 1080 },  // Full HD height
+                    width: { ideal: 1080 },   // Full HD width
+                    height: { ideal: 1920 },  // Full HD height
                     frameRate: { ideal: 30 }  // 30 fps
                 }
             }).then(stream => {
