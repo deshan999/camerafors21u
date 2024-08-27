@@ -3,35 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High Quality Camera App</title>
+    <title>Camera App</title>
     <style>
-        video {
-            width: 100%;
-            height: auto;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
+
+        .container {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        video {
+            border: 1px solid #ddd;
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+        }
+
         canvas {
             display: none;
+        }
+
+        .controls {
+            margin-top: 10px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        select, input {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .header {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <h2>High Quality Camera App</h2>
+    <div class="container">
+        <div class="header">
+            <h2>Camera App</h2>
+        </div>
+        <video id="video" autoplay></video>
 
-    <label for="width">Width:</label>
-    <input type="number" id="width" value="3840">
+        <div class="controls">
+            <label for="width">Width:</label>
+            <input type="number" id="width" value="1920">
 
-    <label for="height">Height:</label>
-    <input type="number" id="height" value="2160">
+            <label for="height">Height:</label>
+            <input type="number" id="height" value="1080">
 
-    <button id="applyDimensions">Apply</button>
-    <button id="startRecording">Start Recording</button>
-    <button id="stopRecording">Stop Recording</button>
-    <button id="saveRecording">Save Recording</button>
-    <button id="capturePhoto">Capture Photo</button>
+            <button id="applyDimensions">Apply</button>
+            <button id="startRecording">Start Recording</button>
+            <button id="stopRecording">Stop Recording</button>
+            <button id="saveRecording">Save Recording</button>
+            <button id="capturePhoto">Capture Photo</button>
+        </div>
 
-    <select id="cameraSelect"></select>
-    <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
+        <select id="cameraSelect"></select>
+        <canvas id="canvas"></canvas>
+    </div>
 
     <script>
         const videoElement = document.getElementById('video');
@@ -89,8 +146,8 @@
         });
 
         captureButton.addEventListener('click', () => {
-            canvas.width = 4000;  // Approx 12MP resolution
-            canvas.height = 3000;
+            canvas.width = 3840;  // 4K resolution width
+            canvas.height = 2160; // 4K resolution height
             canvasContext.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
@@ -131,9 +188,9 @@
             navigator.mediaDevices.getUserMedia({
                 video: {
                     deviceId: { exact: deviceId },
-                    width: { ideal: 3840 },   // 4K resolution width
-                    height: { ideal: 2160 },  // 4K resolution height
-                    frameRate: { ideal: 60 }  // 60 fps
+                    width: { ideal: 1920 },   // Full HD width
+                    height: { ideal: 1080 },  // Full HD height
+                    frameRate: { ideal: 30 }  // 30 fps
                 }
             }).then(stream => {
                 videoElement.srcObject = stream;
