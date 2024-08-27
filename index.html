@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Switcher</title>
+    <title>Camera Recorder</title>
 </head>
 <body>
-    <h2>Camera Switcher</h2>
+    <h2>Camera Recorder</h2>
 
     <label for="width">Width:</label>
     <input type="number" id="width" value="640">
@@ -15,6 +15,9 @@
     <input type="number" id="height" value="480">
 
     <button id="applyDimensions">Apply</button>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording">Stop Recording</button>
+    <button id="saveRecording">Save Recording</button>
 
     <select id="cameraSelect"></select>
     <video id="video" autoplay></video>
@@ -25,47 +28,61 @@
         const widthInput = document.getElementById('width');
         const heightInput = document.getElementById('height');
         const applyButton = document.getElementById('applyDimensions');
+        const startButton = document.getElementById('startRecording');
+        const stopButton = document.getElementById('stopRecording');
+        const saveButton = document.getElementById('saveRecording');
+
+        let mediaRecorder;
+        let recordedChunks = [];
 
         applyButton.addEventListener('click', () => {
             videoElement.style.width = widthInput.value + 'px';
             videoElement.style.height = heightInput.value + 'px';
         });
 
-        // Request camera access
-        function requestCameraAccess() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                // Access granted
-                stream.getTracks().forEach(track => track.stop()); // Stop the stream after testing access
-                loadCameras(); // Load cameras after confirming access
-            })
-            .catch(error => {
-                console.error('Error requesting camera access:', error);
-                alert('Please allow camera access to use this feature.');
+        startButton.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') return;
+            recordedChunks = [];
+            mediaRecorder.start();
+            console.log('Recording started');
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                console.log('Recording stopped');
+            }
+        });
+
+        saveButton.addEventListener('click', () => {
+            if (recordedChunks.length > 0) {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                localStorage.setItem('recordedVideo', url);
+                alert('Video saved to local storage!');
+            } else {
+                alert('No recording available to save.');
+            }
+        });
+
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = "Camera " + (index + 1);
+                cameraSelect.appendChild(option);
             });
-        }
 
-        function loadCameras() {
-            navigator.mediaDevices.enumerateDevices().then(devices => {
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                cameraSelect.innerHTML = ''; // Clear previous options
-                videoDevices.forEach((device, index) => {
-                    const option = document.createElement('option');
-                    option.value = device.deviceId;
-                    option.text = "Camera " + (index + 1);
-                    cameraSelect.appendChild(option);
-                });
-
-                cameraSelect.addEventListener('change', () => {
-                    const deviceId = cameraSelect.value;
-                    startStream(deviceId);
-                });
-
-                if (videoDevices.length > 0) {
-                    startStream(videoDevices[0].deviceId);
-                }
+            cameraSelect.addEventListener('change', () => {
+                const deviceId = cameraSelect.value;
+                startStream(deviceId);
             });
-        }
+
+            if (videoDevices.length > 0) {
+                startStream(videoDevices[0].deviceId);
+            }
+        });
 
         function startStream(deviceId) {
             if (videoElement.srcObject) {
@@ -76,14 +93,25 @@
                 video: { deviceId: { exact: deviceId } }
             }).then(stream => {
                 videoElement.srcObject = stream;
+                setupMediaRecorder(stream);
             }).catch(error => {
                 console.error('Error accessing the camera:', error);
                 alert('Failed to access camera!');
             });
         }
 
-        // Request camera access on page load
-        requestCameraAccess();
+        function setupMediaRecorder(stream) {
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+          mediaRecorder.onstop = () => {
+                console.log('Recording stopped and data available.');
+            };
+        }
     </script>
 </body>
-</html>
+</html>  
