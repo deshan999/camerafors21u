@@ -3,24 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Recorder</title>
+    <title>Camera App</title>
+    <style>
+        video {
+            width: 100%;
+            height: auto;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <h2>Camera Recorder</h2>
+    <h2>Camera App</h2>
 
     <label for="width">Width:</label>
-    <input type="number" id="width" value="640">
+    <input type="number" id="width" value="1280">
 
     <label for="height">Height:</label>
-    <input type="number" id="height" value="480">
+    <input type="number" id="height" value="720">
 
     <button id="applyDimensions">Apply</button>
     <button id="startRecording">Start Recording</button>
     <button id="stopRecording">Stop Recording</button>
     <button id="saveRecording">Save Recording</button>
+    <button id="capturePhoto">Capture Photo</button>
 
     <select id="cameraSelect"></select>
     <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
 
     <script>
         const videoElement = document.getElementById('video');
@@ -31,6 +42,9 @@
         const startButton = document.getElementById('startRecording');
         const stopButton = document.getElementById('stopRecording');
         const saveButton = document.getElementById('saveRecording');
+        const captureButton = document.getElementById('capturePhoto');
+        const canvas = document.getElementById('canvas');
+        const canvasContext = canvas.getContext('2d');
 
         let mediaRecorder;
         let recordedChunks = [];
@@ -72,6 +86,22 @@
             } else {
                 alert('No recording available to save.');
             }
+        });
+
+        captureButton.addEventListener('click', () => {
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            canvasContext.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'captured-photo.jpg';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }, 'image/jpeg');
         });
 
         navigator.mediaDevices.enumerateDevices().then(devices => {
