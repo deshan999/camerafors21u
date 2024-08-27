@@ -58,8 +58,17 @@
             if (recordedChunks.length > 0) {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                localStorage.setItem('recordedVideo', url);
-                alert('Video saved to local storage!');
+
+                // Create a link element and trigger download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'recorded-video.webm';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                // Revoke object URL after download
+                URL.revokeObjectURL(url);
             } else {
                 alert('No recording available to save.');
             }
@@ -108,10 +117,11 @@
                     recordedChunks.push(event.data);
                 }
             };
-          mediaRecorder.onstop = () => {
+
+            mediaRecorder.onstop = () => {
                 console.log('Recording stopped and data available.');
             };
         }
     </script>
 </body>
-</html>  
+</html>
