@@ -31,24 +31,41 @@
             videoElement.style.height = heightInput.value + 'px';
         });
 
-        navigator.mediaDevices.enumerateDevices().then(devices => {
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            videoDevices.forEach((device, index) => {
-                const option = document.createElement('option');
-                option.value = device.deviceId;
-                option.text = "Camera " + (index + 1);
-                cameraSelect.appendChild(option);
+        // Request camera access
+        function requestCameraAccess() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                // Access granted
+                stream.getTracks().forEach(track => track.stop()); // Stop the stream after testing access
+                loadCameras(); // Load cameras after confirming access
+            })
+            .catch(error => {
+                console.error('Error requesting camera access:', error);
+                alert('Please allow camera access to use this feature.');
             });
+        }
 
-            cameraSelect.addEventListener('change', () => {
-                const deviceId = cameraSelect.value;
-                startStream(deviceId);
+        function loadCameras() {
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                cameraSelect.innerHTML = ''; // Clear previous options
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = "Camera " + (index + 1);
+                    cameraSelect.appendChild(option);
+                });
+
+                cameraSelect.addEventListener('change', () => {
+                    const deviceId = cameraSelect.value;
+                    startStream(deviceId);
+                });
+
+                if (videoDevices.length > 0) {
+                    startStream(videoDevices[0].deviceId);
+                }
             });
-
-            if (videoDevices.length > 0) {
-                startStream(videoDevices[0].deviceId);
-            }
-        });
+        }
 
         function startStream(deviceId) {
             if (videoElement.srcObject) {
@@ -64,6 +81,9 @@
                 alert('Failed to access camera!');
             });
         }
+
+        // Request camera access on page load
+        requestCameraAccess();
     </script>
 </body>
 </html>
